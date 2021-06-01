@@ -28,7 +28,7 @@ class User {
        const int64_t twitch_id, const std::string &name, const Channel &channel,
        const std::string &last_ip, const time_t last_seen, const bool left_chat,
        const bool is_admin, const bool show_hidden, const bool show_dgg_chat,
-       const bool enable_public_state)
+       const bool enable_public_state, const time_t created_at)
       : db_(db),
         id_(id),
         twitch_id_(twitch_id),
@@ -40,7 +40,8 @@ class User {
         is_admin_(is_admin),
         show_hidden_(show_hidden),
         show_dgg_chat_(show_dgg_chat),
-        enable_public_state_(enable_public_state) {}
+        enable_public_state_(enable_public_state),
+        created_at_(created_at) {}
 
   User(sqlite::database db, const uint64_t twitch_id, const Channel &channel,
        const std::string &last_ip)
@@ -54,7 +55,8 @@ class User {
         is_admin_(false),
         show_hidden_(false),
         show_dgg_chat_(false),
-        enable_public_state_(true) {}
+        enable_public_state_(true),
+        created_at_(time(nullptr)) {}
 
   User(const User &user)
       : db_(user.db_),
@@ -68,7 +70,8 @@ class User {
         is_admin_(user.is_admin_),
         show_hidden_(user.show_hidden_),
         show_dgg_chat_(user.show_dgg_chat_),
-        enable_public_state_(user.enable_public_state_) {}
+        enable_public_state_(user.enable_public_state_),
+        created_at_(user.created_at_) {}
 
   inline boost::uuids::uuid GetID() {
     boost::shared_lock<boost::shared_mutex> read_lock(lock_);
@@ -130,6 +133,11 @@ class User {
     return enable_public_state_;
   }
 
+  inline time_t GetCreatedAt() {
+    boost::shared_lock<boost::shared_mutex> read_lock(lock_);
+    return created_at_;
+  }
+
   std::string GetStreamJSON();
 
   std::string GetUsernameJSON();
@@ -172,6 +180,7 @@ class User {
   bool show_hidden_;
   bool show_dgg_chat_;
   bool enable_public_state_;
+  time_t created_at_;
 
   friend class Users;
   friend std::ostream &operator<<(std::ostream &os, const User &user);

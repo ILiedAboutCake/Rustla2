@@ -30,6 +30,8 @@ std::string User::GetUsernameJSON() {
   writer.StartObject();
   writer.Key("username");
   writer.String(name_);
+  writer.Key("created_at");
+  writer.Int(created_at_);
   writer.EndObject();
 
   return buf.GetString();
@@ -58,6 +60,8 @@ std::string User::GetProfileJSON() {
   writer.Bool(show_dgg_chat_);
   writer.Key("enable_public_state");
   writer.Bool(enable_public_state_);
+  writer.Key("created_at");
+  writer.Int(created_at_);
   writer.EndObject();
 
   return buf.GetString();
@@ -85,6 +89,8 @@ void User::WriteJSON(rapidjson::Writer<rapidjson::StringBuffer> *writer) {
   writer->Bool(show_dgg_chat_);
   writer->Key("enable_public_state");
   writer->Bool(enable_public_state_);
+  writer->Key("created_at");
+  writer->Int(created_at_);
   writer->EndObject();
 }
 
@@ -304,7 +310,8 @@ std::ostream &operator<<(std::ostream &os, const User &user) {
      << "is_admin: " << user.is_admin_ << ", "
      << "show_hidden: " << user.show_hidden_ << ", "
      << "show_dgg_chat: " << user.show_dgg_chat_ << ", "
-     << "enable_public_state: " << user.enable_public_state_;
+     << "enable_public_state: " << user.enable_public_state_ << ", "
+     << "created_at" << user.created_at_;
   return os;
 }
 
@@ -327,7 +334,8 @@ Users::Users(sqlite::database db) : db_(db) {
         `is_admin`,
         `show_hidden`,
         `show_dgg_chat`,
-        `enable_public_state`
+        `enable_public_state`,
+        `created_at`
       FROM `users`
     )sql";
   auto query = db_ << sql;
@@ -338,12 +346,13 @@ Users::Users(sqlite::database db) : db_(db) {
                const std::string &last_ip, const time_t last_seen,
                const bool left_chat, const bool is_admin,
                const bool show_hidden, const bool show_dgg_chat,
-               const bool enable_public_state) {
+               const bool enable_public_state, const time_t created_at) {
     boost::uuids::string_generator to_uuid;
     auto user_channel = Channel::Create(channel, service, stream_path);
     auto user = std::make_shared<User>(
         db_, to_uuid(id), twitch_id, name, user_channel, last_ip, last_seen,
-        left_chat, is_admin, show_hidden, show_dgg_chat, enable_public_state);
+        left_chat, is_admin, show_hidden, show_dgg_chat, enable_public_state,
+        created_at);
 
     data_by_id_[user->GetID()] = user;
     data_by_twitch_id_[user->GetTwitchID()] = user;
